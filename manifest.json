@@ -1,0 +1,9 @@
+{
+    "name": "LoadoutMetamorphosis",
+    "version_number": "1.0.0",
+    "website_url": "https://github.com/KingEnderBrine/-RoR2-LoadoutMetamorphosis",
+    "description": "Metamorphosis artifact now also randomize loadout",
+    "dependencies": [
+        "bbepis-BepInExPack-5.4.1801"
+    ]
+}
