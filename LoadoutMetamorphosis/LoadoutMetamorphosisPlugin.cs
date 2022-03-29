@@ -1,49 +1,41 @@
 ﻿using BepInEx;
-using BepInEx.Bootstrap;
 using BepInEx.Configuration;
-using InLobbyConfig;
-using InLobbyConfig.Fields;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour.HookGen;
 using RoR2;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using UnityEngine;
+using System.Security.Permissions;
 
+[assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
+[assembly: AssemblyVersion(LoadoutMetamorphosis.LoadoutMetamorphosisPlugin.Version)]
 namespace LoadoutMetamorphosis
 {
-    [BepInDependency("com.KingEnderBrine.InLobbyConfig", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInPlugin("com.KingEnderBrine.LoadoutMetamorphosis", "Loadout Metamorphosis", "1.0.0")]
+    [BepInDependency(InLobbyConfigIntegration.GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(PartialMetamorphosisIntegration.GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInPlugin(GUID, Name, Version)]
     public class LoadoutMetamorphosisPlugin : BaseUnityPlugin
     {
-        internal static ConfigEntry<bool> IsEnabled { get; set; }
-        internal static ConfigEntry<bool> RandomizeSkin { get; set; }
-        private static bool ILCEnabled { get; set; }
+        public const string GUID = "com.KingEnderBrine.LoadoutMetamorphosis";
+        public const string Name = "Loadout Metamorphosis";
+        public const string Version = "1.1.0";
 
-        public void Awake()
+        internal static ConfigEntry<bool> IsEnabled { get; set; }
+
+        public void Start()
         {
             IsEnabled = Config.Bind("Main", "enabled", true, "Is mod enabled");
 
             HookEndpointManager.Modify(typeof(CharacterMaster).GetMethod(nameof(CharacterMaster.SpawnBody)), (ILContext.Manipulator)CharacterMasterSpawnBody);
-
-            ILCEnabled = Chainloader.PluginInfos.ContainsKey("com.KingEnderBrine.InLobbyConfig");
-
-            if (ILCEnabled)
-            {
-                InLobbyConfigIntegration.OnAwake();
-            }
+            InLobbyConfigIntegration.OnStart();
         }
 
         public void Destroy()
         {
             HookEndpointManager.Unmodify(typeof(CharacterMaster).GetMethod(nameof(CharacterMaster.SpawnBody)), (ILContext.Manipulator)CharacterMasterSpawnBody);
-            if (ILCEnabled)
-            {
-                InLobbyConfigIntegration.OnDestroy();
-            }
+            InLobbyConfigIntegration.OnDestroy();
         }
 
         private static void CharacterMasterSpawnBody(ILContext il)
@@ -64,7 +56,9 @@ namespace LoadoutMetamorphosis
 
         private static Loadout BeforeSetLoadout(CharacterBody body, Loadout loadout, CharacterMaster master)
         {
-            if (!master.playerCharacterMasterController || !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.RandomSurvivorOnRespawn))
+            if (!master.playerCharacterMasterController ||
+                !RunArtifactManager.instance.IsArtifactEnabled(RoR2Content.Artifacts.RandomSurvivorOnRespawn) ||
+                !PartialMetamorphosisIntegration.ShouldChange(master))
             {
                 return loadout;
             }

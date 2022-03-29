@@ -1,32 +1,48 @@
-﻿using InLobbyConfig;
+﻿using BepInEx.Bootstrap;
+using InLobbyConfig;
 using InLobbyConfig.Fields;
-using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace LoadoutMetamorphosis
 {
     public static class InLobbyConfigIntegration
     {
+        public const string GUID = "com.KingEnderBrine.InLobbyConfig";
+        private static bool Enabled => Chainloader.PluginInfos.ContainsKey(GUID);
         private static object ModConfig { get; set; }
+        
+        public static void OnStart()
+        {
+            if (Enabled)
+            {
+                OnStartInternal();
+            }
+        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void OnAwake()
+        private static void OnStartInternal()
         {
-            var config = new ModConfigEntry
+            var modConfig = new ModConfigEntry
             {
                 DisplayName = "Loadout Metamorphosis",
                 EnableField = new BooleanConfigField("", () => LoadoutMetamorphosisPlugin.IsEnabled.Value, (newValue) => LoadoutMetamorphosisPlugin.IsEnabled.Value = newValue),
 
             };
 
-            ModConfigCatalog.Add(config);
-            ModConfig = config;
+            ModConfigCatalog.Add(modConfig);
+            ModConfig = modConfig;
+        }
+
+        public static void OnDestroy()
+        {
+            if (Enabled)
+            {
+                OnDestroyInternal();
+            }
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void OnDestroy()
+        private static void OnDestroyInternal()
         {
             ModConfigCatalog.Remove(ModConfig as ModConfigEntry);
         }
