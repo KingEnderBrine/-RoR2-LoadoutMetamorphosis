@@ -20,7 +20,7 @@ namespace LoadoutMetamorphosis
     {
         public const string GUID = "com.KingEnderBrine.LoadoutMetamorphosis";
         public const string Name = "Loadout Metamorphosis";
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
 
         internal static ConfigEntry<bool> IsEnabled { get; set; }
 
@@ -28,7 +28,7 @@ namespace LoadoutMetamorphosis
         {
             IsEnabled = Config.Bind("Main", "enabled", true, "Is mod enabled");
 
-            HookEndpointManager.Modify(typeof(CharacterMaster).GetMethod(nameof(CharacterMaster.SpawnBody)), (ILContext.Manipulator)CharacterMasterSpawnBody);
+            HookEndpointManager.Modify(typeof(CharacterMaster).GetMethod(nameof(CharacterMaster.SpawnBody), BindingFlags.NonPublic | BindingFlags.Instance, null, new[] { typeof(CharacterMaster.SpawnBodyArgs) }, null), (ILContext.Manipulator)CharacterMasterSpawnBody);
             InLobbyConfigIntegration.OnStart();
         }
 
